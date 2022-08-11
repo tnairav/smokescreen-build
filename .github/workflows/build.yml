@@ -1,0 +1,32 @@
+name: nightly
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+  schedule:
+    - cron: '18 */6 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.18.x'
+      - run: |
+          pwd
+          git clone https://github.com/stripe/smokescreen.git build
+          cd build
+          git rev-parse HEAD
+          CGO_ENABLED=0 go build -ldflags="-s -w" .
+          mv smokescreen ../
+      - uses: actions/upload-artifact@v3
+        with:
+          name: artifact
+          path: smokescreen
+
